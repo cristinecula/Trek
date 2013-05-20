@@ -189,6 +189,8 @@ class MigrationIterator implements \Iterator
                 "Class {$class} must derive from \Trek\MigrationInterface."
             );
         }
+
+        $class->setContainer($this->migrator->getContainer());
         
         return $class;
     }

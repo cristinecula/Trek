@@ -12,6 +12,16 @@ namespace Trek;
 */
 abstract class MigrationAbstract implements MigrationInterface
 {
+    protected $container;
+
+    public function setContainer($container) {
+        return $this->container = $container;
+    }
+
+    protected function getContainer() {
+        return $this->container;
+    }
+
     /**
      * Set up the migration.
      * 
