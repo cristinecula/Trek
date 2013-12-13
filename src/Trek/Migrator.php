@@ -23,13 +23,6 @@ class Migrator
     const NS = 'Migration';
     
     /**
-     * The default version file name.
-     * 
-     * @var string
-     */
-    const VERSION_FILE = 'version';
-    
-    /**
      * The base directory where migrations are kept.
      * 
      * @var string
@@ -65,6 +58,13 @@ class Migrator
     private $error;
     
     /**
+     * The last error that occured, if any.
+     * 
+     * @var VersionManagerInterface | null
+     */
+    private $manager;
+    
+    /**
      * Sets up the migrator.
      * 
      * @param string $dir The base directory that all migrations are loaded from.
@@ -72,7 +72,7 @@ class Migrator
      * 
      * @return \Trek\Migrator
      */
-    public function __construct($dir, $ns = self::NS)
+    public function __construct($dir, $ns = self::NS, VersionManagerInterface $manager)
     {
         // a namespace must be specified
         if (!$ns) {
@@ -96,6 +96,8 @@ class Migrator
         
         // normalize namespace
         $this->ns = trim($ns, '\\');
+
+        $this->manager = $manager;
     }
     
     /**
@@ -219,7 +221,7 @@ class Migrator
      */
     public function isVersioned()
     {
-        return file_exists($this->getVersionFile());
+        return $this->manager->isVersioned();
     }
     
     /**
@@ -235,7 +237,7 @@ class Migrator
         $version = $version ? new Version($version) : $this->versions()->next()->current();
         
         // Update stored version.
-        file_put_contents($this->getVersionFile(), (string) $version);
+        $this->manager->bump($version);
         
         // Update cached version.
         $this->version = $version;
@@ -302,20 +304,6 @@ class Migrator
      */
     private function detectVersion()
     {
-        $file = $this->getVersionFile();
-        if (file_exists($file)) {
-            return new Version(file_get_contents($file));
-        }
-        return new Version;
-    }
-    
-    /**
-     * Returns the path to the version file.
-     * 
-     * @return string
-     */
-    private function getVersionFile()
-    {
-        return $this->dir . DIRECTORY_SEPARATOR . self::VERSION_FILE;
+        return $this->manager->current();
     }
 }
